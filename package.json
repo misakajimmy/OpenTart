@@ -1,0 +1,25 @@
+{
+  "name": "@opentart/monorepo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "OpenTart video editor based on Eclipse Theia",
+  "scripts": {
+    "bootstrap": "yarn install",
+    "build": "lerna run build",
+    "clean": "rimraf packages/*/lib examples/*/lib",
+    "start:browser": "lerna run start --scope @opentart/app-browser"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@theia/cli": "^1.69.0",
+    "lerna": "^9.0.7",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.9.3"
+  },
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ]
+}

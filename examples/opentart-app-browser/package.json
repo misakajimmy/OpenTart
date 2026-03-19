@@ -1,0 +1,31 @@
+{
+  "name": "@opentart/app-browser",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "theia start --port 3000",
+    "dev": "theia start --port 3000 --host 0.0.0.0",
+    "build": "theia build --mode production",
+    "build:dev": "theia build --mode development"
+  },
+  "dependencies": {
+    "@theia/core": "latest",
+    "@theia/filesystem": "latest",
+    "@theia/workspace": "latest",
+    "@theia/navigator": "latest",
+    "@theia/monaco": "latest",
+    "@theia/messages": "latest",
+    "@theia/preferences": "latest",
+    "@opentart/core": "0.0.1"
+  },
+  "theiaExtensions": [
+    "@theia/core",
+    "@theia/filesystem",
+    "@theia/workspace",
+    "@theia/navigator",
+    "@theia/monaco",
+    "@theia/messages",
+    "@theia/preferences",
+    "@opentart/core"
+  ]
+}

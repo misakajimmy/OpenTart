@@ -5,7 +5,8 @@
   "main": "lib/browser/opentart-core-frontend-module",
   "scripts": {
     "clean": "rimraf lib",
-    "build": "yarn clean && tsc -p ."
+    "build": "yarn clean && tsc -p .",
+    "watch": "tsc -p . --watch"
   },
   "theiaExtensions": [
     {

@@ -5,8 +5,9 @@
   "scripts": {
     "start": "theia start --port 3000",
     "dev": "theia start --port 3000 --host 0.0.0.0",
-    "build": "theia build --mode production",
-    "build:dev": "theia build --mode development"
+    "build": "theia build --mode development",
+    "build:prod": "theia build --mode production",
+    "watch": "theia build --mode development --watch"
   },
   "dependencies": {
     "@theia/core": "latest",
@@ -16,7 +17,8 @@
     "@theia/monaco": "latest",
     "@theia/messages": "latest",
     "@theia/preferences": "latest",
-    "@opentart/core": "0.0.1"
+    "@opentart/core": "0.0.1",
+    "@opentart/navigator": "0.0.1"
   },
   "theiaExtensions": [
     "@theia/core",
@@ -26,6 +28,7 @@
     "@theia/monaco",
     "@theia/messages",
     "@theia/preferences",
-    "@opentart/core"
+    "@opentart/core",
+    "@opentart/navigator"
   ]
 }

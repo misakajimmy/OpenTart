@@ -1,0 +1,24 @@
+{
+  "name": "@opentart/navigator",
+  "version": "0.0.1",
+  "private": true,
+  "main": "lib/browser/opentart-navigator-frontend-module",
+  "scripts": {
+    "clean": "rimraf lib",
+    "build": "yarn clean && tsc -p .",
+    "watch": "tsc -p . --watch"
+  },
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/opentart-navigator-frontend-module"
+    }
+  ],
+  "dependencies": {
+    "@theia/core": "latest",
+    "@theia/filesystem": "latest",
+    "@theia/workspace": "latest",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
+

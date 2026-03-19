@@ -1,0 +1,22 @@
+{
+  "name": "@opentart/filesystem",
+  "version": "0.0.1",
+  "private": true,
+  "main": "lib/browser/opentart-filesystem-frontend-module",
+  "types": "lib/common/opentart-filesystem-protocol.d.ts",
+  "scripts": {
+    "clean": "rimraf lib",
+    "build": "yarn clean && tsc -p .",
+    "watch": "tsc -p . --watch"
+  },
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/opentart-filesystem-frontend-module"
+    }
+  ],
+  "dependencies": {
+    "@theia/core": "latest",
+    "@theia/filesystem": "latest"
+  }
+}
+

@@ -18,7 +18,8 @@
     "@theia/messages": "latest",
     "@theia/preferences": "latest",
     "@opentart/core": "0.0.1",
-    "@opentart/navigator": "0.0.1"
+    "@opentart/navigator": "0.0.1",
+    "@opentart/filesystem": "0.0.1"
   },
   "theiaExtensions": [
     "@theia/core",
@@ -29,6 +30,7 @@
     "@theia/messages",
     "@theia/preferences",
     "@opentart/core",
-    "@opentart/navigator"
+    "@opentart/navigator",
+    "@opentart/filesystem"
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "name": "@opentart/ffmpeg",
+  "version": "0.0.1",
+  "private": true,
+  "main": "lib/node/opentart-ffmpeg-node-module",
+  "types": "lib/common/opentart-ffmpeg-protocol.d.ts",
+  "scripts": {
+    "clean": "rimraf lib",
+    "build": "yarn clean && tsc -p .",
+    "watch": "tsc -p . --watch"
+  },
+  "theiaExtensions": [
+    {
+      "backend": "lib/node/opentart-ffmpeg-node-module"
+    }
+  ],
+  "dependencies": {
+    "@theia/core": "latest"
+  }
+}
+

@@ -26,6 +26,16 @@ export interface FfmpegVersionInfo {
   patch: number
 }
 
+export interface ScreenshotOptions {
+  inputUri: string
+  outputPath: string
+  seekSeconds?: number
+}
+
+export interface ScreenshotResult {
+  outputPath: string
+}
+
 export interface OpenTartFfmpeg {
   /**
    * Return parsed `ffmpeg -version` information.
@@ -37,6 +47,11 @@ export interface OpenTartFfmpeg {
    * (version-independent view over ffprobe output).
    */
   probe(uri: string): Promise<FfprobeMetadata>
+
+  /**
+   * Extract one frame from input and save it as an image.
+   */
+  screenshot(options: ScreenshotOptions): Promise<ScreenshotResult>
 }
 
 export const OpenTartFfmpeg = Symbol('OpenTartFfmpeg')

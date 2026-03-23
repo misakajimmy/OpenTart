@@ -12,11 +12,15 @@
   "theiaExtensions": [
     {
       "frontend": "lib/browser/opentart-filesystem-frontend-module"
+    },
+    {
+      "backend": "lib/node/opentart-filesystem-node-module"
     }
   ],
   "dependencies": {
     "@theia/core": "latest",
-    "@theia/filesystem": "latest"
+    "@theia/filesystem": "latest",
+    "@opentart/ffmpeg": "0.0.1"
   }
 }
 

@@ -7,13 +7,23 @@ export interface MediaMetadata {
   readonly codec?: string
 }
 
+export interface MediaPreview {
+  readonly uri: string
+  readonly imagePath: string
+}
+
+export const OpenTartFilesystemPath = '/services/opentart-filesystem'
 export const OpenTartFilesystem = Symbol('OpenTartFilesystem')
 
 export interface OpenTartFilesystem {
   /**
    * Get media-related metadata for a given resource.
-   * First phase: this is a stub that can return fake data.
    */
   getMediaMetadata(uri: string): Promise<MediaMetadata | undefined>
+
+  /**
+   * Generate one preview image for a media resource.
+   */
+  getPreviewImage(uri: string): Promise<MediaPreview | undefined>
 }
 

@@ -6,6 +6,8 @@ import { MediaEntry, MediaSourceType, MediaViewMode } from './media-browser/mode
 import { MediaSourceFactory } from './media-browser/source/media-source-factory'
 import { LabelProvider } from '@theia/core/lib/browser/label-provider'
 import URI from '@theia/core/lib/common/uri'
+import { FileDialogService } from '@theia/filesystem/lib/browser/file-dialog/file-dialog-service'
+import { WorkspaceService } from '@theia/workspace/lib/browser'
 
 @injectable()
 export class OpenTartMediaBrowserWidget extends ReactWidget {
@@ -15,6 +17,10 @@ export class OpenTartMediaBrowserWidget extends ReactWidget {
     protected readonly sourceFactory!: MediaSourceFactory
     @inject(LabelProvider)
     protected readonly labelProvider!: LabelProvider
+    @inject(FileDialogService)
+    protected readonly fileDialogService!: FileDialogService
+    @inject(WorkspaceService)
+    protected readonly workspaceService!: WorkspaceService
 
     protected selectedSourceType: MediaSourceType = 'localDrive'
     protected viewMode: MediaViewMode = 'list'
@@ -59,7 +65,13 @@ export class OpenTartMediaBrowserWidget extends ReactWidget {
     protected async onAfterAttach(msg: Message): Promise<void> {
         super.onAfterAttach(msg)
         await this.loadSourceRoots()
-        await this.openSourceRoot()
+        const roots = await this.workspaceService.roots
+        const firstWorkspaceRoot = roots[0]
+        if (firstWorkspaceRoot) {
+            await this.loadDirectory(firstWorkspaceRoot.resource.path.fsPath())
+        } else {
+            await this.openSourceRoot()
+        }
         this.update()
     }
 
@@ -160,6 +172,40 @@ export class OpenTartMediaBrowserWidget extends ReactWidget {
         this.currentUri = entry.path
         await this.loadMetadata()
         await this.generatePreview()
+    }
+
+    protected async openWithTheiaFileDialog(): Promise<void> {
+        this.lastError = undefined
+        const selected = await this.fileDialogService.showOpenDialog({
+            title: 'Select Media File',
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false
+        })
+        if (!selected) {
+            return
+        }
+        const entry: MediaEntry = {
+            id: `file-${selected.toString()}`,
+            name: this.labelProvider.getName(selected),
+            path: selected.path.fsPath(),
+            type: 'file'
+        }
+        await this.onOpenEntry(entry)
+    }
+
+    protected async openFolderWithTheiaFileDialog(): Promise<void> {
+        this.lastError = undefined
+        const selected = await this.fileDialogService.showOpenDialog({
+            title: 'Select Folder',
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false
+        })
+        if (!selected) {
+            return
+        }
+        await this.loadDirectory(selected.path.fsPath())
     }
 
     protected isMediaFile(filePath: string): boolean {
@@ -275,25 +321,6 @@ export class OpenTartMediaBrowserWidget extends ReactWidget {
         window.removeEventListener('mouseup', this.handleResizeEnd)
     }
 
-    protected renderSourceSelector(): React.ReactNode {
-        const sourceOptions: Array<{ type: MediaSourceType; label: string }> = [
-            { type: 'localDrive', label: 'This PC' },
-            { type: 'networkPlaceholder', label: 'Network' }
-        ]
-        return (
-            <select
-                className='theia-select theia-LocationList'
-                value={this.selectedSourceType}
-                onChange={async e => this.onSelectSource(e.currentTarget.value as MediaSourceType)}
-                style={{ width: '92px', height: '24px' }}
-            >
-                {sourceOptions.map(option => (
-                    <option key={option.type} value={option.type}>{option.label}</option>
-                ))}
-            </select>
-        )
-    }
-
     protected renderRootSelector(): React.ReactNode {
         if (this.selectedSourceType !== 'localDrive' || this.sourceRoots.length === 0) {
             return null
@@ -323,8 +350,14 @@ export class OpenTartMediaBrowserWidget extends ReactWidget {
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div className='theia-header' style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0, overflow: 'hidden' }}>
-                        {this.renderSourceSelector()}
-                        {this.renderRootSelector()}
+                        <button
+                            className='theia-button secondary'
+                            title='Open file with Theia FileDialog'
+                            style={this.iconButtonStyle(false)}
+                            onClick={() => this.openWithTheiaFileDialog()}
+                        >
+                            <i className='fa fa-file-video-o' />
+                        </button>
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center' }}>
                         <button

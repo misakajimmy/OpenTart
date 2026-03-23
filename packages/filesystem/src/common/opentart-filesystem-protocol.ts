@@ -10,6 +10,18 @@ export interface MediaMetadata {
 export interface MediaPreview {
   readonly uri: string
   readonly imagePath: string
+  readonly imageDataUri?: string
+}
+
+export interface FilesystemEntry {
+  readonly name: string
+  readonly path: string
+  readonly isDirectory: boolean
+}
+
+export interface WindowsDrive {
+  readonly name: string
+  readonly path: string
 }
 
 export const OpenTartFilesystemPath = '/services/opentart-filesystem'
@@ -25,5 +37,15 @@ export interface OpenTartFilesystem {
    * Generate one preview image for a media resource.
    */
   getPreviewImage(uri: string): Promise<MediaPreview | undefined>
+
+  /**
+   * List available Windows drive roots.
+   */
+  listWindowsDrives(): Promise<WindowsDrive[]>
+
+  /**
+   * List directory entries under the given path.
+   */
+  listDirectory(dirPath: string): Promise<FilesystemEntry[]>
 }
 

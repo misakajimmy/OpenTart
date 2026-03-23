@@ -1,11 +1,14 @@
 import * as os from 'os'
 import * as path from 'path'
+import * as fs from 'fs'
 import { injectable, inject } from '@theia/core/shared/inversify'
 import { OpenTartFfmpeg } from '@opentart/ffmpeg/lib/common/opentart-ffmpeg-protocol'
 import {
+  FilesystemEntry,
   MediaMetadata,
   MediaPreview,
-  OpenTartFilesystem
+  OpenTartFilesystem,
+  WindowsDrive
 } from '../common/opentart-filesystem-protocol'
 
 @injectable()
@@ -36,10 +39,37 @@ export class OpenTartFilesystemNodeService implements OpenTartFilesystem {
       outputPath,
       seekSeconds: 1
     })
+    const imageBuffer = fs.readFileSync(result.outputPath)
+    const imageDataUri = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
     return {
       uri,
-      imagePath: result.outputPath
+      imagePath: result.outputPath,
+      imageDataUri
     }
+  }
+
+  async listWindowsDrives(): Promise<WindowsDrive[]> {
+    const drives: WindowsDrive[] = []
+    for (let code = 65; code <= 90; code++) {
+      const letter = String.fromCharCode(code)
+      const drivePath = `${letter}:\\`
+      if (fs.existsSync(drivePath)) {
+        drives.push({
+          name: `${letter}:`,
+          path: drivePath
+        })
+      }
+    }
+    return drives
+  }
+
+  async listDirectory(dirPath: string): Promise<FilesystemEntry[]> {
+    const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
+    return entries.map(entry => ({
+      name: entry.name,
+      path: path.join(dirPath, entry.name),
+      isDirectory: entry.isDirectory()
+    }))
   }
 }
 

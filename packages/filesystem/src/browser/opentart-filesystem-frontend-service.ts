@@ -1,5 +1,11 @@
 import { injectable } from '@theia/core/shared/inversify'
-import { MediaMetadata, MediaPreview, OpenTartFilesystem } from '../common/opentart-filesystem-protocol'
+import {
+  FilesystemEntry,
+  MediaMetadata,
+  MediaPreview,
+  OpenTartFilesystem,
+  WindowsDrive
+} from '../common/opentart-filesystem-protocol'
 
 @injectable()
 export class OpenTartFilesystemFrontendService implements OpenTartFilesystem {
@@ -11,6 +17,14 @@ export class OpenTartFilesystemFrontendService implements OpenTartFilesystem {
 
   getPreviewImage(uri: string): Promise<MediaPreview | undefined> {
     return this.delegate.getPreviewImage(uri)
+  }
+
+  listWindowsDrives(): Promise<WindowsDrive[]> {
+    return this.delegate.listWindowsDrives()
+  }
+
+  listDirectory(dirPath: string): Promise<FilesystemEntry[]> {
+    return this.delegate.listDirectory(dirPath)
   }
 }
 

@@ -17,6 +17,9 @@ import { WidgetManager } from '@theia/core/lib/browser/widget-manager'
 import { OpenTartNavigatorWidget } from './opentart-navigator-widget'
 import { OpenTartMediaBrowserWidget } from './opentart-media-browser-widget'
 import { OpenTartExplorerWidgetFactory, OPENTART_EXPLORER_VIEW_CONTAINER_ID } from './opentart-explorer-widget-factory'
+import { MediaSourceFactory } from './media-browser/source/media-source-factory'
+import { WindowsLocalDriveSource } from './media-browser/source/windows-local-drive-source'
+import { NetworkLocationPlaceholderSource } from './media-browser/source/network-location-placeholder-source'
 
 export const OpenTartNavigatorCommands = {
     TOGGLE: <Command>{
@@ -76,6 +79,9 @@ class OpenTartNavigatorCommandContribution implements CommandContribution {
 export default new ContainerModule(bind => {
     bind(OpenTartNavigatorWidget).toSelf().inSingletonScope()
     bind(OpenTartMediaBrowserWidget).toSelf().inSingletonScope()
+    bind(MediaSourceFactory).toSelf().inSingletonScope()
+    bind(WindowsLocalDriveSource).toSelf().inSingletonScope()
+    bind(NetworkLocationPlaceholderSource).toSelf().inSingletonScope()
 
     // Explorer 容器本身的工厂
     bind(WidgetFactory).to(OpenTartExplorerWidgetFactory).inSingletonScope()

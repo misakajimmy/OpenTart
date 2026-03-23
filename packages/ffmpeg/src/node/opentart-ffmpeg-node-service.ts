@@ -9,10 +9,17 @@ import {
   ScreenshotOptions,
   ScreenshotResult
 } from '../common/opentart-ffmpeg-protocol'
+import {
+  FfmpegFallbackStrategy,
+  FfmpegResolvedPaths,
+  FfmpegStrategy,
+  Ffmpeg6Strategy,
+  Ffmpeg7Strategy
+} from './ffmpeg-strategy'
 
-export interface FfmpegResolvedPaths {
-  ffmpeg: string
-  ffprobe: string
+export interface FfmpegBinaryConfig {
+  ffmpegPath?: string
+  ffprobePath?: string
 }
 
 function parseVersion(output: string): FfmpegVersionInfo {
@@ -29,10 +36,10 @@ function parseVersion(output: string): FfmpegVersionInfo {
   }
 }
 
-async function resolvePaths(): Promise<FfmpegResolvedPaths> {
-  // Phase 1: 环境变量优先，其次依赖系统 PATH
-  const ffmpeg = process.env.OPENTART_FFMPEG_PATH || 'ffmpeg'
-  const ffprobe = process.env.OPENTART_FFPROBE_PATH || 'ffprobe'
+async function resolvePaths(config?: FfmpegBinaryConfig): Promise<FfmpegResolvedPaths> {
+  // 优先级：显式配置 > 环境变量 > 系统 PATH 命令名
+  const ffmpeg = config?.ffmpegPath || process.env.OPENTART_FFMPEG_PATH || 'ffmpeg'
+  const ffprobe = config?.ffprobePath || process.env.OPENTART_FFPROBE_PATH || 'ffprobe'
   return { ffmpeg, ffprobe }
 }
 
@@ -41,6 +48,12 @@ export class OpenTartFfmpegNodeService implements OpenTartFfmpeg {
 
   protected cachedVersion: FfmpegVersionInfo | undefined
   protected resolvedPaths: FfmpegResolvedPaths | undefined
+  protected strategy: FfmpegStrategy | undefined
+  protected readonly binaryConfig: FfmpegBinaryConfig
+
+  constructor(binaryConfig: FfmpegBinaryConfig = {}) {
+    this.binaryConfig = binaryConfig
+  }
 
   async getVersion(): Promise<FfmpegVersionInfo> {
     if (!this.cachedVersion) {
@@ -58,71 +71,44 @@ export class OpenTartFfmpegNodeService implements OpenTartFfmpeg {
   }
 
   async probe(uri: string): Promise<FfprobeMetadata> {
-    // Phase 1: 调用 ffprobe 并返回最小化数据结构
+    const version = await this.getVersion()
     const paths = await this.getPaths()
-    const args = [
-      '-v', 'quiet',
-      '-print_format', 'json',
-      '-show_format',
-      '-show_streams',
-      uri
-    ]
-    const output = await this.execOnce(paths.ffprobe, args)
-    let json: any
-    try {
-      json = JSON.parse(output)
-    } catch (e) {
-      throw new Error(`Failed to parse ffprobe output for "${uri}": ${(e as Error).message}`)
-    }
+    const strategy = this.getStrategy(version)
+    return strategy.probe(uri, paths, this.runReadOnly.bind(this))
+  }
 
-    const format = json.format || {}
-    const streams = Array.isArray(json.streams) ? json.streams : []
-
-    return {
-      uri,
-      format: {
-        formatName: format.format_name,
-        durationSeconds: format.duration ? Number(format.duration) : undefined,
-        bitrate: format.bit_rate ? Number(format.bit_rate) : undefined
-      },
-      streams: streams.map((s: any) => ({
-        index: typeof s.index === 'number' ? s.index : 0,
-        codecType: (s.codec_type || 'unknown') as any,
-        codecName: s.codec_name,
-        width: s.width,
-        height: s.height,
-        fps: s.avg_frame_rate && s.avg_frame_rate.includes('/')
-          ? (() => {
-              const [num, den] = s.avg_frame_rate.split('/').map((v: string) => Number(v))
-              return den ? num / den : undefined
-            })()
-          : undefined
-      }))
+  protected getStrategy(version: FfmpegVersionInfo): FfmpegStrategy {
+    if (!this.strategy) {
+      const candidates: FfmpegStrategy[] = [
+        new Ffmpeg7Strategy(),
+        new Ffmpeg6Strategy(),
+        new FfmpegFallbackStrategy()
+      ]
+      const selected = candidates.find(item => item.supports(version))
+      if (!selected) {
+        throw new Error(`No ffmpeg strategy matched version: ${version.raw}`)
+      }
+      this.strategy = selected
     }
+    return this.strategy
   }
 
   async screenshot(options: ScreenshotOptions): Promise<ScreenshotResult> {
+    const version = await this.getVersion()
     const paths = await this.getPaths()
+    const strategy = this.getStrategy(version)
     const outputDir = path.dirname(options.outputPath)
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true })
     }
-    const seek = options.seekSeconds ?? 0
-    const args = [
-      '-y',
-      '-ss', String(seek),
-      '-i', options.inputUri,
-      '-frames:v', '1',
-      '-q:v', '2',
-      options.outputPath
-    ]
-    await this.execOnce(paths.ffmpeg, args)
+    const args = strategy.buildScreenshotArgs(options)
+    await this.runWrite(paths.ffmpeg, args)
     return { outputPath: options.outputPath }
   }
 
   protected async getPaths(): Promise<FfmpegResolvedPaths> {
     if (!this.resolvedPaths) {
-      this.resolvedPaths = await resolvePaths()
+      this.resolvedPaths = await resolvePaths(this.binaryConfig)
     }
     return this.resolvedPaths
   }
@@ -144,6 +130,22 @@ export class OpenTartFfmpegNodeService implements OpenTartFfmpeg {
         }
       })
     })
+  }
+
+  /**
+   * Read-only command execution path.
+   * Used for ffprobe-style operations that do not create/modify files.
+   */
+  protected runReadOnly(cmd: string, args: string[]): Promise<string> {
+    return this.execOnce(cmd, args)
+  }
+
+  /**
+   * Write operation command path.
+   * We keep all file-generating/modifying ffmpeg operations through this method.
+   */
+  protected runWrite(cmd: string, args: string[]): Promise<string> {
+    return this.execOnce(cmd, args)
   }
 }
 

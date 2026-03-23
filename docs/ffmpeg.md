@@ -183,7 +183,7 @@ interface FfmpegStrategy {
 #### 6.2 路径解析与版本检测
 
 - [x] 实现 `resolveFfmpegPaths(config?: FfmpegBinaryConfig): Promise<FfmpegResolvedPaths>`（当前为内部 `resolvePaths` 实现）：
-  - [ ] 支持从配置结构解析路径。
+  - [x] 支持从配置结构解析路径。
   - [x] 支持从环境变量 `OPENTART_FFMPEG_PATH` / `OPENTART_FFPROBE_PATH` 解析路径。
   - [x] 支持从系统 PATH 中查找 `ffmpeg` / `ffprobe`（通过命令名依赖 PATH，后续可加入显式查找逻辑）。
 - [x] 在 `OpenTartFfmpegNodeService.getVersion()` 中：
@@ -193,31 +193,31 @@ interface FfmpegStrategy {
 
 #### 6.3 Version Strategy（填平 6 / 7 等差异）
 
-- [ ] 定义 `FfmpegStrategy` 接口：
-  - [ ] `supports(version: FfmpegVersionInfo): boolean`
-  - [ ] `probe(uri: string, paths: FfmpegResolvedPaths): Promise<FfprobeMetadata>`
-- [ ] 实现基础策略：
-  - [ ] `Ffmpeg6Strategy`：按 6.x 的行为解析 ffprobe 输出。
-  - [ ] `Ffmpeg7Strategy`：按 7.x 的行为解析 ffprobe 输出。
-  - [ ] `FfmpegFallbackStrategy`：用于不满足要求的版本（给出统一降级/错误信息）。
-- [ ] 在 `OpenTartFfmpegNodeService` 中接入策略选择逻辑，并对外暴露统一的 `probe`。
+- [x] 定义 `FfmpegStrategy` 接口：
+  - [x] `supports(version: FfmpegVersionInfo): boolean`
+  - [x] `probe(uri: string, paths: FfmpegResolvedPaths): Promise<FfprobeMetadata>`
+- [x] 实现基础策略：
+  - [x] `Ffmpeg6Strategy`：按 6.x 的行为解析 ffprobe 输出。
+  - [x] `Ffmpeg7Strategy`：按 7.x 的行为解析 ffprobe 输出。
+  - [x] `FfmpegFallbackStrategy`：用于不满足要求的版本（给出统一降级/错误信息）。
+- [x] 在 `OpenTartFfmpegNodeService` 中接入策略选择逻辑，并对外暴露统一的 `probe`。
 
 #### 6.4 probe 功能（ffprobe 封装）
 
 - [x] 使用 `ffprobe` 实现真实的 `probe(uri: string): Promise<FfprobeMetadata>`：
   - [x] 调用 `ffprobe -v quiet -print_format json -show_format -show_streams`。
   - [x] 解析 JSON 为统一的 `FfprobeMetadata`。
-  - [ ] 在不同策略中处理版本字段差异（如某些字段命名不一致的情况）。
+  - [x] 在不同策略中处理版本字段差异（如某些字段命名不一致的情况）。
 
 #### 6.5 对上游包的集成（未来阶段）
 
-- [ ] 在 `@opentart/filesystem` 的 node 端依赖 `OpenTartFfmpeg`：
-  - [ ] 使用 `probe` 结果构造 `MediaMetadata`。
-  - [ ] 提供给前端（Media Browser / Navigator）使用。
+- [x] 在 `@opentart/filesystem` 的 node 端依赖 `OpenTartFfmpeg`：
+  - [x] 使用 `probe` 结果构造 `MediaMetadata`。
+  - [x] 提供给前端（Media Browser / Navigator）使用。
 - [ ] 设计基础的 `render(options)` / `screenshot(options)` 接口：
   - [x] 定义 `screenshot(options)` 接口并提供 Node 端基础实现（单帧截图）。
-  - [ ] 明确只用 `ffmpeg` 负责「改文件 / 生成资源」操作。
-  - [ ] 将时间线 / 操作描述转换为命令行参数，并在策略内部处理版本差异。
+  - [x] 明确只用 `ffmpeg` 负责「改文件 / 生成资源」操作（通过 `runWrite` 路径与读操作分离）。
+  - [x] 将时间线 / 操作描述转换为命令行参数，并在策略内部处理版本差异（已落地到 `buildScreenshotArgs` 策略方法）。
 
 ---
 
